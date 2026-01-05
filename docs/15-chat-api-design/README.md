@@ -1,7 +1,7 @@
 # 第15章：对话接口设计
 
 ## HTTP 设计最佳实践（参考 Google API / Stripe）
-- 资源与动词：优先 RESTful 路径（`/chats/{id}/messages`），动词留给动作型操作（`/chats/{id}:close`），与 Google API Design Guide 的名词化资源保持一致。
+- 资源与动词：优先 RESTful 路径（`/chats/{id}/messages`），动词留给动作型操作（`/chats/{id}/close`）
 - 请求/响应：使用 JSON，字段命名统一；返回标准错误结构（`type`/`code`/`message`/`request_id`），区分 4xx/5xx。
 - 参考文档：
   - Google API Design Guide https://cloud.google.com/apis/design （资源命名、字段风格、错误模型、分页过滤）；

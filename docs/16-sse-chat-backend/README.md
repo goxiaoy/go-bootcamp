@@ -1,7 +1,7 @@
 # 第16章：实现 SSE 流式对话后端
 
 > 课前准备：提前在 https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey?apikey=%7B%7D 获取火山方舟 ARK 的 API Key（保存为环境变量 `ARK_API_KEY`），并准备好模型 endpoint ID（如 `deepseek-v3-250324` 或自定义 `ARK_MODEL_ID`）。
-
+ 
 ## 学习目标
 - 实现可并发的 SSE 推送 handler
 - 构建消息广播/订阅机制

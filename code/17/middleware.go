@@ -59,7 +59,8 @@ func BearerAuthMiddleware(secret string, allowlist []string) func(http.Handler) 
 				http.Error(w, "unauthorized", http.StatusUnauthorized)
 				return
 			}
-			next.ServeHTTP(w, r)
+			ctx := NewUserInfoCtx(r.Context(), CtxUserInfo{UserID: claims.Subject})
+			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }

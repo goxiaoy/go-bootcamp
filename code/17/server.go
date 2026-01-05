@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -24,6 +26,27 @@ type Config struct {
 	ModelID      string
 	AllowOrigin  string
 	APIKey       string
+}
+
+type chatStore struct {
+	mu   sync.Mutex
+	data map[string][]openai.ChatCompletionMessage
+}
+
+func newChatStore() *chatStore {
+	return &chatStore{data: make(map[string][]openai.ChatCompletionMessage)}
+}
+
+func (s *chatStore) history(user string) []openai.ChatCompletionMessage {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]openai.ChatCompletionMessage(nil), s.data[user]...)
+}
+
+func (s *chatStore) append(user string, msg openai.ChatCompletionMessage) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.data[user] = append(s.data[user], msg)
 }
 
 func NewServer(cfg Config) *http.Server {
@@ -90,6 +113,7 @@ type ChatRequest struct {
 
 // ChatHandler proxies to the Ark streaming API and returns SSE chunks.
 func ChatHandler(cfg Config) http.HandlerFunc {
+	store := newChatStore()
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -129,23 +153,36 @@ func ChatHandler(cfg Config) http.HandlerFunc {
 		ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
 		defer cancel()
 
+		userInfo := UserInfoFromContext(ctx)
+		userID := userInfo.UserID
+		history := store.history(userID)
+		if cfg.Logger != nil {
+			cfg.Logger.Printf("chat history loaded user=%s messages=%d", userID, len(history))
+		}
+		messages := []openai.ChatCompletionMessage{
+			// 系统提示，设置助手的初始身份/语气
+			{Role: openai.ChatMessageRoleSystem, Content: "你是人工智能助手"},
+		}
+		messages = append(messages, history...)
+		// 用户当前输入；如果要支持多轮，需要把历史对话消息也按顺序追加在此切片中
+		messages = append(messages, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: req.Message})
+
 		stream, err := newArkClient(apiKey).CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
-			Model: model,
-			Messages: []openai.ChatCompletionMessage{
-				{Role: openai.ChatMessageRoleSystem, Content: "你是人工智能助手"},
-				{Role: openai.ChatMessageRoleUser, Content: req.Message},
-			},
+			Model:    model,
+			Messages: messages,
 		})
 		if err != nil {
 			http.Error(w, "chat stream error: "+err.Error(), http.StatusBadGateway)
 			return
 		}
 		defer stream.Close()
+		store.append(userID, openai.ChatCompletionMessage{Role: openai.ChatMessageRoleUser, Content: req.Message})
 
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
 
+		var assistantReply strings.Builder
 		for {
 			select {
 			case <-ctx.Done():
@@ -154,8 +191,15 @@ func ChatHandler(cfg Config) http.HandlerFunc {
 				return
 			default:
 			}
+			//stream.Recv() 是阻塞的，会一直等待下一块流式数据或直到服务端关闭连接/出现错误才返回
 			resp, err := stream.Recv()
 			if errors.Is(err, io.EOF) {
+				if reply := assistantReply.String(); reply != "" {
+					store.append(userID, openai.ChatCompletionMessage{
+						Role:    openai.ChatMessageRoleAssistant,
+						Content: reply,
+					})
+				}
 				writeSSE(w, "event: done\ndata: [DONE]\n\n")
 				flusher.Flush()
 				return
@@ -167,6 +211,7 @@ func ChatHandler(cfg Config) http.HandlerFunc {
 			}
 			if len(resp.Choices) > 0 {
 				chunk := resp.Choices[0].Delta.Content
+				assistantReply.WriteString(chunk)
 				writeSSE(w, "data: "+chunk+"\n\n")
 				flusher.Flush()
 			}
@@ -206,4 +251,23 @@ func newArkClient(apiKey string) *openai.Client {
 	cfg := openai.DefaultConfig(apiKey)
 	cfg.BaseURL = "https://ark.cn-beijing.volces.com/api/v3"
 	return openai.NewClientWithConfig(cfg)
+}
+
+type ctxKey string
+
+const userInfoCtxKey ctxKey = "user-info"
+
+type CtxUserInfo struct {
+	UserID string
+}
+
+func NewUserInfoCtx(ctx context.Context, info CtxUserInfo) context.Context {
+	return context.WithValue(ctx, userInfoCtxKey, info)
+}
+
+func UserInfoFromContext(ctx context.Context) CtxUserInfo {
+	if v, ok := ctx.Value(userInfoCtxKey).(CtxUserInfo); ok {
+		return v
+	}
+	return CtxUserInfo{}
 }

@@ -133,7 +133,71 @@ function setHint(node, text, isError = false) {
   node.style.color = isError ? "#b4341d" : "var(--muted)";
 }
 
-function appendMessage(role, text) {
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function safeLink(url) {
+  try {
+    const u = new URL(url, window.location.origin);
+    if (u.protocol === "http:" || u.protocol === "https:") {
+      return u.href;
+    }
+  } catch (_) {
+    // ignore malformed URLs
+  }
+  return "";
+}
+
+function renderMarkdown(md) {
+  const segments = [];
+  const codeBlock = /```(\w+)?\n([\s\S]*?)```/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = codeBlock.exec(md)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push({ type: "text", value: md.slice(lastIndex, match.index) });
+    }
+    segments.push({ type: "code", lang: match[1] || "", value: match[2] });
+    lastIndex = codeBlock.lastIndex;
+  }
+  if (lastIndex < md.length) {
+    segments.push({ type: "text", value: md.slice(lastIndex) });
+  }
+
+  const renderText = (text) => {
+    let html = escapeHtml(text);
+    html = html.replace(
+      /\[([^\]]+)]\(([^)]+)\)/g,
+      (_, label, href) => {
+        const safeHref = safeLink(href);
+        if (!safeHref) return label;
+        return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+      },
+    );
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+    html = html.replace(/\n/g, "<br>");
+    return html;
+  };
+
+  return segments
+    .map((segment) => {
+      if (segment.type === "code") {
+        const langClass = segment.lang ? ` language-${segment.lang}` : "";
+        return `<pre><code class="${langClass}">${escapeHtml(segment.value)}</code></pre>`;
+      }
+      return renderText(segment.value);
+    })
+    .join("");
+}
+
+function appendMessage(role, text, { markdown = false } = {}) {
   const container = document.createElement("div");
   container.className = `message ${role}`;
 
@@ -144,7 +208,9 @@ function appendMessage(role, text) {
 
   const bubble = document.createElement("div");
   bubble.className = "bubble";
-  bubble.textContent = text;
+  bubble[markdown ? "innerHTML" : "textContent"] = markdown
+    ? renderMarkdown(text)
+    : text;
   container.appendChild(bubble);
 
   chatLog.appendChild(container);
@@ -179,9 +245,10 @@ async function streamChat(message) {
 
   const reader = resp.body.getReader();
   const decoder = new TextDecoder("utf-8");
-  const target = appendMessage("model", "");
+  const target = appendMessage("model", "", { markdown: true });
   let buffer = "";
   let currentEvent = "message";
+  let markdownBuffer = "";
 
   while (true) {
     const { value, done } = await reader.read();
@@ -200,7 +267,8 @@ async function streamChat(message) {
           if (currentEvent === "error") {
             throw new Error(payload);
           }
-          target.textContent += payload;
+          markdownBuffer += payload;
+          target.innerHTML = renderMarkdown(markdownBuffer);
           chatLog.scrollTop = chatLog.scrollHeight;
         }
       }
