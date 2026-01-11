@@ -75,8 +75,8 @@
 15. 对话接口设计 — [docs/15-chat-api-design/README.md](docs/15-chat-api-design/README.md)  
 16. 实现 SSE 流式对话后端 — [docs/16-sse-chat-backend/README.md](docs/16-sse-chat-backend/README.md)  
 17. 客户端接入与发布 — [docs/17-client-deploy/README.md](docs/17-client-deploy/README.md)  
-18. 模块与依赖管理 — [docs/19-modules-deps/README.md](docs/19-modules-deps/README.md)  
-19. 测试与基准 — [docs/20-testing/README.md](docs/20-testing/README.md)
+18. 模块与依赖管理 — [docs/18-modules-deps/README.md](docs/18-modules-deps/README.md)  
+19. 测试与基准 — [docs/19-testing/README.md](docs/19-testing/README.md)
 
 快速开始
 

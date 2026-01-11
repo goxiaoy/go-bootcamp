@@ -1,4 +1,4 @@
-# 第20章：测试与基准
+# 第19章：测试与基准
 
 ## 学习目标
 - 编写 table-driven 单元测试
@@ -48,7 +48,8 @@ func TestAdd(t *testing.T) {
 ```
 
 ## 覆盖率与基准/示例
-- 覆盖率：`go test -cover ./...`，详细查看 `go test -coverprofile=cover.out` + `go tool cover -html=cover.out`.
+- 覆盖率：`go test -cover ./...`，详细查看 `go test -coverprofile=cover.out` + `go tool cover -html=cover.out`。
+- 数据竞争：`go test -race ./...` 启用竞态检测，发现 goroutine 间的读写冲突，建议并发代码默认加上。
 - 基准：`func BenchmarkXxx(b *testing.B)`；在循环中调用待测函数，命令 `go test -bench .`。
 - 示例：`func ExampleXxx()`，输出用 `// Output:` 注释，既是文档又能被测试执行。
 
@@ -88,3 +89,6 @@ func TestCount(t *testing.T) {
 3) 体验 `testify/require`：改写一个测试使用 `require.Equal`，对比标准库写法。
 4) 选做：安装 `mockgen` 为某接口生成 mock，在测试中验证调用次数或参数。
 
+
+## 衍生阅读
+https://zhuanlan.zhihu.com/p/683761480
