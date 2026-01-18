@@ -1,6 +1,7 @@
 import { renderCard } from './js/view.js';
 import { createLocalStore } from './js/storage.js';
 import { buildTodayQueue, normalizeDate } from './js/logic.js';
+import { nextIndex, prevIndex } from './js/navigation.js';
 
 const store = createLocalStore();
 const panels = {
@@ -10,6 +11,8 @@ const panels = {
 const cardRoot = document.getElementById('card-root');
 const revealBtn = document.getElementById('reveal');
 const exampleBtn = document.getElementById('example');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
 
 let showMeaning = false;
 let showExample = false;
@@ -26,6 +29,8 @@ function renderCurrent() {
   const word = queue[index];
   if (!word) return;
   cardRoot.innerHTML = renderCard(word, { showMeaning, showExample });
+  prevBtn.disabled = index === 0;
+  nextBtn.disabled = index >= queue.length - 1;
 }
 
 async function setupPlan(count) {
@@ -70,6 +75,22 @@ revealBtn.addEventListener('click', () => {
 
 exampleBtn.addEventListener('click', () => {
   showExample = true;
+  renderCurrent();
+});
+
+prevBtn.addEventListener('click', () => {
+  if (!queue.length) return;
+  index = prevIndex(index, queue.length);
+  showMeaning = false;
+  showExample = false;
+  renderCurrent();
+});
+
+nextBtn.addEventListener('click', () => {
+  if (!queue.length) return;
+  index = nextIndex(index, queue.length);
+  showMeaning = false;
+  showExample = false;
   renderCurrent();
 });
 
