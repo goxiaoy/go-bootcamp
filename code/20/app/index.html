@@ -1,40 +1,13 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>背单词</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="app">
-    <section id="start" class="panel active">
-      <div class="hero">
-        <p class="kicker">六级冲刺</p>
-        <h1>每日学习计划</h1>
-        <p class="subtitle">打开即学，离线也能背</p>
-        <div class="choices">
-          <button class="choice" data-count="30">每天 30 个</button>
-          <button class="choice" data-count="50">每天 50 个</button>
-          <button class="choice" data-count="80">每天 80 个</button>
-        </div>
-      </div>
-    </section>
-
-    <section id="card" class="panel">
-      <header class="top">
-        <button id="prev" class="ghost">上一个</button>
-        <button id="next" class="ghost">下一个</button>
-      </header>
-      <div id="card-root"></div>
-      <footer class="actions">
-        <button id="reveal" class="primary">显示释义</button>
-        <button id="example" class="secondary">显示例句</button>
-      </footer>
-    </section>
-  </main>
-
-  <script type="module" src="app.js"></script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>app</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
