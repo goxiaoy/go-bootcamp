@@ -1,6 +1,6 @@
 # Go 课程仓库：从零基础到 SSE 实时对话后端
 
-本仓库面向对 Go 语言（Golang）感兴趣但没有实战经验的学习者。课程假定学习者具有一些计算机学科基础（如算法/数据结构、操作系统或网络概念）。如果没有这些背景，课程会在适当位置补充入门资源链接。课程共 19 章，目标是在课程结束后能够使用 Go 实现一个基于 SSE（Server-Sent Events）的流式后端服务，并与 deepseek 进行实时对话集成。
+本仓库面向对 Go 语言（Golang）感兴趣但没有实战经验的学习者。课程假定学习者具有一些计算机学科基础（如算法/数据结构、操作系统或网络概念）。如果没有这些背景，课程会在适当位置补充入门资源链接。课程共 20 章，目标是在课程结束后能够使用 Go 实现一个基于 SSE（Server-Sent Events）的流式后端服务，并与 deepseek 进行实时对话集成。
 
 ## 📌 关于 AI Coding 工具的重要提示
 
@@ -57,7 +57,7 @@
 - 第 10-12 章：Context + 并发 + 通道（重点理解）
 - **第 13-19 章：工程实战（逐章深入，边做边学）**
 
-课程结构（19 章摘要）
+课程结构（20 章摘要）
 1. 课程概览与目标 — [docs/01-overview/README.md](docs/01-overview/README.md)  
 2. 环境准备与工具链 — [docs/02-env-setup/README.md](docs/02-env-setup/README.md)  
 3. 基础语法与入口程序 — [docs/03-basics/README.md](docs/03-basics/README.md)  
@@ -76,7 +76,8 @@
 16. 实现 SSE 流式对话后端 — [docs/16-sse-chat-backend/README.md](docs/16-sse-chat-backend/README.md)  
 17. 客户端接入与发布 — [docs/17-client-deploy/README.md](docs/17-client-deploy/README.md)  
 18. 模块与依赖管理 — [docs/18-modules-deps/README.md](docs/18-modules-deps/README.md)  
-19. 测试与基准 — [docs/19-testing/README.md](docs/19-testing/README.md)
+19. 测试与基准 — [docs/19-testing/README.md](docs/19-testing/README.md)  
+20. Vibe Coding 随想与实践
 
 快速开始
 
