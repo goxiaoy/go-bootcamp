@@ -13,6 +13,7 @@ const exampleBtn = document.getElementById('example');
 
 let showMeaning = false;
 let showExample = false;
+let words = [];
 let queue = [];
 let index = 0;
 
@@ -27,14 +28,15 @@ function renderCurrent() {
   cardRoot.innerHTML = renderCard(word, { showMeaning, showExample });
 }
 
-function setupPlan(count) {
+async function setupPlan(count) {
   store.set('dailyCount', count);
   setPanel('card');
 
+  await wordsReady;
   const today = normalizeDate(new Date());
   const progress = store.get('progress', {});
   const { queue: todayQueue } = buildTodayQueue({
-    words: queue,
+    words,
     progress,
     dailyCount: count,
     today,
@@ -53,6 +55,13 @@ function bindPlanButtons() {
 }
 
 bindPlanButtons();
+
+async function loadWords() {
+  const response = await fetch('./data/words.json');
+  words = await response.json();
+}
+
+const wordsReady = loadWords();
 
 revealBtn.addEventListener('click', () => {
   showMeaning = true;
