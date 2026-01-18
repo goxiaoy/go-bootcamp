@@ -72,3 +72,7 @@ exampleBtn.addEventListener('click', () => {
   showExample = true;
   renderCurrent();
 });
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js');
+}
